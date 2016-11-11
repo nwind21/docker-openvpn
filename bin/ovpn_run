@@ -41,6 +41,7 @@ source "$OPENVPN/ovpn_env.sh"
 
 mkdir -p /dev/net
 if [ ! -c /dev/net/tun ]; then
+    echo "Making tunnel device."
     mknod /dev/net/tun c 10 200
 fi
 
@@ -53,6 +54,7 @@ fi
 
 # Setup NAT forwarding if requested
 if [ "$OVPN_DEFROUTE" != "0" ] || [ "$OVPN_NAT" == "1" ] ; then
+    echo "Enabling NAT Forwarding"
     iptables -t nat -C POSTROUTING -s $OVPN_SERVER -o $OVPN_NATDEVICE -j MASQUERADE || {
       iptables -t nat -A POSTROUTING -s $OVPN_SERVER -o $OVPN_NATDEVICE -j MASQUERADE
     }
@@ -83,6 +85,12 @@ if [ $? = 0 ]; then
     sysctl -w net.ipv6.conf.all.forwarding=1 || echo "Failed to enable IPv6 Forwarding"
 fi
 
+echo "Starting bridge..."
+#ifconfig eth0:1 10.200.100.3 netmask 255.255.255.0
+#/usr/local/bin/ovpn_bridge_start
+#iptables -A INPUT -i tap0 -j ACCEPT
+#iptables -A INPUT -i br0 -j ACCEPT
+#iptables -A FORWARD -i br0 -j ACCEPT
+
 echo "Running 'openvpn ${ARGS[@]} ${USER_ARGS[@]}'"
 exec openvpn ${ARGS[@]} ${USER_ARGS[@]}
-
